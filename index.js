@@ -14,6 +14,9 @@ PingEmitter.addListener('didSendPacket', ({sequenceNumber}) => {
 const addListener = (callback) => {
   PingEmitter.addListener('didReceivePingResponsePacket', ({sequenceNumber}) => {
     const receivedTime = (new Date()).getTime()
+    if (sendingTime[sequenceNumber] == null) {
+      return
+    }
     const delta = receivedTime - sendingTime[sequenceNumber]
     delete sendingTime[sequenceNumber]
     callback(sequenceNumber, delta)

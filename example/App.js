@@ -1,14 +1,30 @@
-import React from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  Button,
+  FlatList,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View
+} from "react-native";
 import Pinger from "react-native-sample-module";
 
-Pinger.addListener((sequenceNumber, delta) => {
-  console.log(sequenceNumber, delta);
-});
-
 export default () => {
+  const [state, setState] = useState(null);
+  useEffect(() => {
+    Pinger.addListener((sequenceNumber, delta) => {
+      console.log(sequenceNumber, delta);
+      setState({
+        sequenceNumber,
+        delta
+      });
+    });
+  });
+
+  console.log(state);
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.text}>ping to google.com</Text>
       <Button
         title="Start"
         onPress={() => {
@@ -21,7 +37,12 @@ export default () => {
           Pinger.stop();
         }}
       />
-    </View>
+      {state && (
+        <Text style={styles.text}>
+          #{state.sequenceNumber} {state.delta}msec
+        </Text>
+      )}
+    </SafeAreaView>
   );
 };
 
