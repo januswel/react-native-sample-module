@@ -11,7 +11,9 @@ RCT_EXPORT_MODULE()
 
 RCT_EXPORT_METHOD(sampleMethod:(NSString *)stringArgument numberParameter:(nonnull NSNumber *)numberArgument callback:(RCTResponseSenderBlock)callback)
 {
-    // TODO: Implement
+    NSLog(@"%@", stringArgument);
+    NSLog(@"%@", numberArgument);
+    callback(@[]);
 }
 
 @end
