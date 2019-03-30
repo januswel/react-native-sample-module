@@ -12,20 +12,28 @@ RCT_EXPORT_MODULE()
     [self->_sendTimer invalidate];
 }
 
+- (NSArray<NSString *> *)supportedEvents
+{
+    return @[@"didFailWithError", @"didSendPacket", @"didFailToSendPacket", @"didReceivePingResponsePacket", @"didReceiveUnexpectedPacket"];
+}
+
 - (dispatch_queue_t)methodQueue
 {
     return dispatch_get_main_queue();
 }
 
-RCT_EXPORT_METHOD(sampleMethod:(NSString *)hostName callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(start:(NSString *)hostName)
 {
     NSLog(@"%@", hostName);
 
     self.pinger = [[SimplePing alloc] initWithHostName:hostName];
     self.pinger.delegate = self;
     [self.pinger start];
-
-    callback(@[]);
+}
+RCT_EXPORT_METHOD(stop)
+{
+    [self->_pinger stop];
+    [self->_sendTimer invalidate];
 }
 
 - (void)sendPing {
@@ -47,7 +55,8 @@ RCT_EXPORT_METHOD(sampleMethod:(NSString *)hostName callback:(RCTResponseSenderB
     // And start a timer to send the subsequent pings.
 
     assert(self.sendTimer == nil);
-    self.sendTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(sendPing) userInfo:nil repeats:YES];}
+    self.sendTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(sendPing) userInfo:nil repeats:YES];
+}
 
 - (void)simplePing:(SimplePing *)pinger didFailWithError:(NSError *)error {
 #pragma unused(pinger)
@@ -61,6 +70,8 @@ RCT_EXPORT_METHOD(sampleMethod:(NSString *)hostName callback:(RCTResponseSenderB
     // We do however want to nil out pinger so that the runloop stops.
 
     self.pinger = nil;
+
+    [self sendEventWithName:@"didFailWithError" body:@{@"error": error}];
 }
 
 - (void)simplePing:(SimplePing *)pinger didSendPacket:(NSData *)packet sequenceNumber:(uint16_t)sequenceNumber {
@@ -68,6 +79,8 @@ RCT_EXPORT_METHOD(sampleMethod:(NSString *)hostName callback:(RCTResponseSenderB
     assert(pinger == self.pinger);
 #pragma unused(packet)
     NSLog(@"#%u sent", (unsigned int) sequenceNumber);
+
+    [self sendEventWithName:@"didSendPacket" body:@{@"sequenceNumber": [NSNumber numberWithUnsignedShort:sequenceNumber]}];
 }
 
 - (void)simplePing:(SimplePing *)pinger didFailToSendPacket:(NSData *)packet sequenceNumber:(uint16_t)sequenceNumber error:(NSError *)error {
@@ -75,6 +88,14 @@ RCT_EXPORT_METHOD(sampleMethod:(NSString *)hostName callback:(RCTResponseSenderB
     assert(pinger == self.pinger);
 #pragma unused(packet)
     NSLog(@"#%u send failed: %@", (unsigned int) sequenceNumber, shortErrorFromError(error));
+
+    [self
+     sendEventWithName:@"didFailToSendPacket"
+     body:@{
+            @"sequenceNumber": [NSNumber numberWithUnsignedShort:sequenceNumber],
+            @"error": error
+            }
+     ];
 }
 
 - (void)simplePing:(SimplePing *)pinger didReceivePingResponsePacket:(NSData *)packet sequenceNumber:(uint16_t)sequenceNumber {
@@ -82,6 +103,8 @@ RCT_EXPORT_METHOD(sampleMethod:(NSString *)hostName callback:(RCTResponseSenderB
     assert(pinger == self.pinger);
 #pragma unused(packet)
     NSLog(@"#%u received, size=%zu", (unsigned int) sequenceNumber, (size_t) packet.length);
+
+    [self sendEventWithName:@"didReceivePingResponsePacket" body:@{@"sequenceNumber": [NSNumber numberWithUnsignedShort:sequenceNumber]}];
 }
 
 - (void)simplePing:(SimplePing *)pinger didReceiveUnexpectedPacket:(NSData *)packet {
@@ -89,6 +112,8 @@ RCT_EXPORT_METHOD(sampleMethod:(NSString *)hostName callback:(RCTResponseSenderB
     assert(pinger == self.pinger);
 
     NSLog(@"unexpected packet, size=%zu", (size_t) packet.length);
+
+    [self sendEventWithName:@"didReceiveUnexpectedPacket" body:@{@"packet": packet}];
 }
 
 #pragma mark * Utilities

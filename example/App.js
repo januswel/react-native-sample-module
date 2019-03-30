@@ -1,16 +1,26 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
-import SampleModule from "react-native-sample-module";
+import { Button, StyleSheet, Text, View } from "react-native";
+import Pinger from "react-native-sample-module";
+
+Pinger.addListener((sequenceNumber, delta) => {
+  console.log(sequenceNumber, delta);
+});
 
 export default () => {
-  console.log(SampleModule);
-  console.log(SampleModule.getConstants());
-  SampleModule.sampleMethod("google.com", () => {
-    console.log("called");
-  });
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>foo</Text>
+      <Button
+        title="Start"
+        onPress={() => {
+          Pinger.start("google.com");
+        }}
+      />
+      <Button
+        title="Stop"
+        onPress={() => {
+          Pinger.stop();
+        }}
+      />
     </View>
   );
 };
