@@ -4,6 +4,11 @@
 #import "RCTBridgeModule.h"
 #endif
 
-@interface JWSampleModule : NSObject <RCTBridgeModule>
+#import "SimplePing.h"
+
+@interface JWSampleModule : NSObject <RCTBridgeModule, SimplePingDelegate>
+
+@property (nonatomic, strong, readwrite, nullable) SimplePing *pinger;
+@property (nonatomic, strong, readwrite, nullable) NSTimer *sendTimer;
 
 @end

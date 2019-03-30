@@ -5,7 +5,7 @@ import SampleModule from "react-native-sample-module";
 export default () => {
   console.log(SampleModule);
   console.log(SampleModule.getConstants());
-  SampleModule.sampleMethod("foo", 3, () => {
+  SampleModule.sampleMethod("google.com", () => {
     console.log("called");
   });
   return (
