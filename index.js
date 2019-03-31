@@ -1,30 +1,28 @@
 import { NativeEventEmitter, NativeModules } from 'react-native';
 
 const { JWSampleModule } = NativeModules;
+
 const PingEmitter = new NativeEventEmitter(JWSampleModule);
 
-const start = hostName => JWSampleModule.start(hostName)
-const stop = () => JWSampleModule.stop()
-
-const sendingTime = {}
+const sendingTimes = {}
 PingEmitter.addListener('didSendPacket', ({sequenceNumber}) => {
-  sendingTime[sequenceNumber] = (new Date()).getTime()
+  sendingTimes[sequenceNumber] = (new Date()).getTime()
 })
 
 const addListener = (callback) => {
   PingEmitter.addListener('didReceivePingResponsePacket', ({sequenceNumber}) => {
     const receivedTime = (new Date()).getTime()
-    if (sendingTime[sequenceNumber] == null) {
+    if (sendingTimes[sequenceNumber] == null) {
       return
     }
-    const delta = receivedTime - sendingTime[sequenceNumber]
-    delete sendingTime[sequenceNumber]
-    callback(sequenceNumber, delta)
+    const latency = receivedTime - sendingTimes[sequenceNumber]
+    delete sendingTimes[sequenceNumber]
+    callback(sequenceNumber, latency)
   })
 }
 
 export default {
-  start,
-  stop,
+  start: JWSampleModule.start,
+  stop: JWSampleModule.stop,
   addListener,
 }

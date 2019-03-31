@@ -12,11 +12,11 @@ import Pinger from "react-native-sample-module";
 export default () => {
   const [state, setState] = useState(null);
   useEffect(() => {
-    Pinger.addListener((sequenceNumber, delta) => {
-      console.log(sequenceNumber, delta);
+    Pinger.addListener((sequenceNumber, latency) => {
+      console.log(sequenceNumber, latency);
       setState({
         sequenceNumber,
-        delta
+        latency
       });
     });
   });
@@ -39,7 +39,7 @@ export default () => {
       />
       {state && (
         <Text style={styles.text}>
-          #{state.sequenceNumber} {state.delta}msec
+          #{state.sequenceNumber} {state.latency}msec
         </Text>
       )}
     </SafeAreaView>
