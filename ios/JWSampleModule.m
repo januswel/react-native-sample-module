@@ -14,7 +14,14 @@ RCT_EXPORT_MODULE()
 
 - (NSArray<NSString *> *)supportedEvents
 {
-    return @[@"didFailWithError", @"didSendPacket", @"didFailToSendPacket", @"didReceivePingResponsePacket", @"didReceiveUnexpectedPacket"];
+    return @[
+        @"didStartWithAddress",
+        @"didFailWithError",
+        @"didSendPacket",
+        @"didFailToSendPacket",
+        @"didReceivePingResponsePacket",
+        @"didReceiveUnexpectedPacket"
+    ];
 }
 
 - (dispatch_queue_t)methodQueue
@@ -56,6 +63,8 @@ RCT_EXPORT_METHOD(stop)
 
     assert(self.sendTimer == nil);
     self.sendTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(sendPing) userInfo:nil repeats:YES];
+
+    [self sendEventWithName:@"didStartWithAddress" body:@{@"hostName": pinger.hostName}];
 }
 
 - (void)simplePing:(SimplePing *)pinger didFailWithError:(NSError *)error {
